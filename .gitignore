@@ -41,3 +41,5 @@ Thumbs.db
 
 #Copied built release assemblies
 /ReleaseAssemblies/*.dll
+*.meta
+.idea/
