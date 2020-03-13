@@ -51,7 +51,7 @@ namespace EGoap.Source.Graphs
             // Set of already visited nodes
             var closed = new HashSet<TGraphNode>(nodeEqualityComparer);
             // Priority queue of partial and potentially complete paths
-            var open = new ListBasedPriorityQueue<PartialPath> {new PartialPath(heuristic(sourceNode, targetNode))};
+            var open = new SmartPriorityQueue<PartialPath, double> {new PartialPath(heuristic(sourceNode, targetNode))};
 
             // Best known path to target in the open priority queue
             PartialPath bestPathToTarget = null;
@@ -84,9 +84,9 @@ namespace EGoap.Source.Graphs
                 {
                     if (bestPathToTarget != null)
                     {
-                        // "Good enough"
+                        // Time out, best path so far
                         UnityEngine.Debug.Log(
-                            $"Well enough Path found of cost {currentPartialPath.CostSoFar} : {currentPartialPath.EdgeCount} edges"
+                            $"Time out! Path found of cost {currentPartialPath.CostSoFar} : {currentPartialPath.EdgeCount} edges"
                         );
                         return bestPathToTarget.ToPath();
                     }
@@ -134,7 +134,7 @@ namespace EGoap.Source.Graphs
         #endregion
 
         // Partial path with estimated cost, comparable by estimated cost.
-        private class PartialPath : IComparable<PartialPath>
+        private class PartialPath : IComparable<PartialPath>, IPriorityItem<double>
         {
             private readonly IList<IGraphEdge<TGraphNode>> edges;
 
@@ -190,6 +190,11 @@ namespace EGoap.Source.Graphs
             public Path<TGraphNode> ToPath()
             {
                 return new Path<TGraphNode>(edges);
+            }
+
+            public double GetPriority()
+            {
+                return EstimatedTotalCost;
             }
         }
     }

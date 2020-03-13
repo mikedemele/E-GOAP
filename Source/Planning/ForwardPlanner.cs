@@ -186,7 +186,7 @@ namespace EGoap.Source.Planning
                         if (graph[i, k] + graph[k, j] < graph[i, j])
                         {
                             graph[i, j] = graph[i, k] + graph[k, j];
-                            actionList[i, j] = actionList[i, k].ConvertAll(p => p);
+                            actionList[i, j] = actionList[i, k];
                             actionList[i, j].AddRange(new List<ExperienceAction>(actionList[k, j]));
                         }
                     }

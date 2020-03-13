@@ -165,53 +165,67 @@ namespace EGoap.Source.Planning
             var graph = new double[size, size];
             var actionList = new List<ExperienceAction>[size, size];
             for (var i = 0; i < size; i++)
-            for (var j = 0; j < size; j++)
             {
-                var initialAction = InitializeExperienceGraphMatrixNode(i, j);
-                var initialActionList = new List<ExperienceAction>();
-                double initialCost;
-                if (initialAction != null)
+                for (var j = 0; j < size; j++)
                 {
-                    initialActionList.Add(initialAction);
-                    initialCost = initialAction.Cost;
-                }
-                else
-                {
-                    initialCost = double.PositiveInfinity;
-                }
+                    var initialAction = InitializeExperienceGraphMatrixNode(i, j);
+                    var initialActionList = new List<ExperienceAction>();
+                    double initialCost;
+                    if (initialAction != null)
+                    {
+                        initialActionList.Add(initialAction);
+                        initialCost = initialAction.Cost;
+                    }
+                    else
+                    {
+                        initialCost = double.PositiveInfinity;
+                    }
 
-                graph[i, j] = initialCost;
-                actionList[i, j] = initialActionList;
+                    graph[i, j] = initialCost;
+                    actionList[i, j] = initialActionList;
+                }
             }
 
             // Calculate shortcuts
             for (var k = 0; k < size; k++)
-            for (var i = 0; i < size; i++)
-            for (var j = 0; j < size; j++)
-                if (graph[i, k] + graph[k, j] < graph[i, j])
+            {
+                for (var i = 0; i < size; i++)
                 {
-                    graph[i, j] = graph[i, k] + graph[k, j];
-                    actionList[i, j] = actionList[i, k].ConvertAll(p => p);
-                    actionList[i, j].AddRange(new List<ExperienceAction>(actionList[k, j]));
+                    for (var j = 0; j < size; j++)
+                    {
+                        if (graph[i, k] + graph[k, j] < graph[i, j])
+                        {
+                            graph[i, j] = graph[i, k] + graph[k, j];
+                            actionList[i, j] = actionList[i, k];
+                            actionList[i, j].AddRange(new List<ExperienceAction>(actionList[k, j]));
+                        }
+                    }
                 }
+            }
 
             for (var i = 0; i < size; i++)
-            for (var j = 0; j < size; j++)
-                if (graph[i, j] < double.PositiveInfinity)
+            {
+                for (var j = 0; j < size; j++)
                 {
-                    var nextAct = actionList[i, j];
-                    var baseActionList = new List<PlanningAction>();
-                    foreach (var expAction in nextAct) baseActionList.AddRange(expAction.Actions);
 
-                    var shortcut = new ExperienceAction(nextAct.First().StartState,
-                        baseActionList.ToArray());
-                    
-                    // if (experienceActions.Add(shortcut))
-                    //     UnityEngine.Debug.LogWarning("New shortcut action: " + shortcut);
-                    experienceActions.Add(shortcut);
+                    if (graph[i, j] < double.PositiveInfinity)
+                    {
+                        var nextAct = actionList[i, j];
+                        var baseActionList = new List<PlanningAction>();
+                        foreach (var expAction in nextAct) baseActionList.AddRange(expAction.Actions);
+
+                        var shortcut = new ExperienceAction(nextAct.First().StartState,
+                            baseActionList.ToArray());
+
+                        // if (experienceActions.Add(shortcut))
+                        //     UnityEngine.Debug.LogWarning("New shortcut action: " + shortcut);
+                        experienceActions.Add(shortcut);
+                    }
                 }
+            }
             UnityEngine.Debug.Log($"Time calculating shortcuts: {timer.ElapsedSeconds}");
         }
+        
         public void ClearExperience()
         {
             experienceActions.Clear();
